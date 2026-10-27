@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FACEIT Pro Hub - Gestiune Turnee Baze de Date 2</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #121212; color: #e5e7eb; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .faceit-orange { color: #ff5500; }
+        .bg-faceit { background-color: #ff5500; }
+        .bg-faceit:hover { background-color: #e04b00; }
+        .card-dark { background-color: #1f1f1f; border: 1px solid #2e2e2e; }
+    </style>
+</head>
+<body class="min-h-screen p-6">
+
+    <!-- Header -->
+    <header class="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row justify-between items-center border-b border-zinc-800 pb-4">
+        <div>
+            <h1 class="text-3xl font-extrabold tracking-tight text-white">
+                <span class="faceit-orange">ESPORTS</span> ARENA <span class="text-sm font-normal bg-zinc-800 text-zinc-300 px-2 py-1 rounded ml-2">Proiect BD2 - Oracle SQL</span>
+            </h1>
+            <p class="text-zinc-400 text-sm mt-1">Platformă de gestiune a turneelor, clasamentelor ELO și validare automată prin Triggere și Proceduri Stocate</p>
+        </div>
+        <div class="mt-4 md:mt-0 flex gap-3">
+            <span class="px-3 py-1.5 rounded bg-green-900/40 border border-green-700 text-green-400 text-xs font-semibold">● DB Status: Conectat (Simulare Tranzacțională)</span>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- Coloana Stanga + Mijloc (2/3): View Clasament si Meciuri -->
+        <div class="lg:col-span-2 space-y-6">
+
+            <!-- Sectiune VIEW: V_Clasament_Echipe -->
+            <section class="card-dark rounded-xl p-5 shadow-lg">
+                <div class="flex justify-between items-center mb-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-white">Clasament General Echipe</h2>
+                        <p class="text-xs text-zinc-400">Date preluate dinamic din vederea SQL: <code class="text-orange-400">SELECT * FROM V_Clasament_Echipe ORDER BY elo_mediu_echipa DESC</code></p>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-sm">
+                        <thead>
+                            <tr class="border-b border-zinc-700 text-zinc-400 uppercase text-xs">
+                                <th class="py-3 px-2">ID</th>
+                                <th class="py-3 px-2">Echipă</th>
+                                <th class="py-3 px-2">Tag</th>
+                                <th class="py-3 px-2">Căpitan</th>
+                                <th class="py-3 px-2 text-center">ELO Mediu</th>
+                                <th class="py-3 px-2 text-center">Victorii</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabel-clasament" class="divide-y divide-zinc-800">
+                            <!-- Populat din JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Sectiune Meciuri & Apel Procedura + Trigger -->
+            <section class="card-dark rounded-xl p-5 shadow-lg">
+                <div class="mb-4">
+                    <h2 class="text-xl font-bold text-white">Meciuri Turneu &amp; Actualizare Scor</h2>
+                    <p class="text-xs text-zinc-400">Apel procedură <code class="text-orange-400">proc_inregistreaza_scor</code> + declanșare automată <code class="text-orange-400">trg_finalizare_meci_elo</code> (+25 / -20 ELO)</p>
+                </div>
+                <div id="lista-meciuri" class="space-y-3">
+                    <!-- Populat din JS -->
+                </div>
+            </section>
+
+            <!-- Tabel Jucatori (pentru a vedea modificarea ELO in timp real) -->
+            <section class="card-dark rounded-xl p-5 shadow-lg">
+                <h2 class="text-xl font-bold text-white mb-1">Tabelul <code class="text-orange-400">Jucatori</code> (Monitorizare ELO în timp real)</h2>
+                <p class="text-xs text-zinc-400 mb-4">Când finalizezi un meci mai sus, triggerul actualizează automat coloana <code class="text-zinc-300">rank_elo</code> a jucătorilor.</p>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-sm">
+                        <thead>
+                            <tr class="border-b border-zinc-700 text-zinc-400 uppercase text-xs">
+                                <th class="py-2 px-2">ID</th>
+                                <th class="py-2 px-2">Nickname</th>
+                                <th class="py-2 px-2">Echipă</th>
+                                <th class="py-2 px-2">Rol</th>
+                                <th class="py-2 px-2">Rank ELO</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabel-jucatori" class="divide-y divide-zinc-800">
+                            <!-- Populat din JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+        <!-- Coloana Dreapta (1/3): Actiuni, Testare Trigger Eroare & Consola SQL -->
+        <div class="space-y-6">
+
+            <!-- Formular Inscriere Echipa in Turneu (Testeaza Triggerul 1) -->
+            <section class="card-dark rounded-xl p-5 shadow-lg">
+                <h2 class="text-lg font-bold text-white mb-1">Înscriere Echipă în Turneu</h2>
+                <p class="text-xs text-zinc-400 mb-4">Testează triggerul <code class="text-orange-400">trg_validare_capacitate_turneu</code></p>
+
+                <div class="space-y-3 text-sm">
+                    <div>
+                        <label class="block text-zinc-400 mb-1">Selectează Turneul:</label>
+                        <select id="select-turneu" class="w-full bg-zinc-900 border border-zinc-700 rounded p-2 text-white">
+                            <option value="101">Winter Faceit Cup (Status: Înscrieri Deschise)</option>
+                            <option value="100">Romanian Pro League S1 (Status: În Desfășurare - Blocat)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-zinc-400 mb-1">Selectează Echipa:</label>
+                        <select id="select-echipa" class="w-full bg-zinc-900 border border-zinc-700 rounded p-2 text-white">
+                            <!-- Populat din JS -->
+                        </select>
+                    </div>
+                    <button onclick="inscrieEchipa()" class="w-full bg-faceit text-white font-bold py-2 px-4 rounded transition">
+                        Execută INSERT în Inscrieri_Turneu
+                    </button>
+                </div>
+            </section>
+
+            <!-- Formular Adaugare Echipa Noua -->
+            <section class="card-dark rounded-xl p-5 shadow-lg">
+                <h2 class="text-lg font-bold text-white mb-1">Adaugă Echipă &amp; Căpitan Nou</h2>
+                <p class="text-xs text-zinc-400 mb-4">Execută <code class="text-orange-400">INSERT INTO Jucatori</code> &amp; <code class="text-orange-400">Echipe</code></p>
+                <div class="space-y-3 text-sm">
+                    <input id="inp-nume-echipa" type="text" placeholder="Nume Echipă (ex: Galati Gaming)" class="w-full bg-zinc-900 border border-zinc-700 rounded p-2 text-white">
+                    <div class="grid grid-cols-2 gap-2">
+                        <input id="inp-tag" type="text" placeholder="Tag (ex: GLG)" maxlength="5" class="w-full bg-zinc-900 border border-zinc-700 rounded p-2 text-white">
+                        <input id="inp-elo" type="number" placeholder="ELO Căpitan (ex: 2000)" value="2000" class="w-full bg-zinc-900 border border-zinc-700 rounded p-2 text-white">
+                    </div>
+                    <input id="inp-capitan" type="text" placeholder="Nickname Căpitan (ex: Cosmin_CTI)" class="w-full bg-zinc-900 border border-zinc-700 rounded p-2 text-white">
+                    <button onclick="adaugaEchipa()" class="w-full bg-zinc-700 hover:bg-zinc-600 text-white font-semibold py-2 px-4 rounded transition">
+                        Salvează în Baza de Date
+                    </button>
+                </div>
+            </section>
+
+            <!-- Consola Jurnal SQL / PL-SQL -->
+            <section class="card-dark rounded-xl p-5 shadow-lg flex flex-col h-96">
+                <div class="flex justify-between items-center mb-2">
+                    <h2 class="text-sm font-bold uppercase tracking-wider text-orange-400">Jurnal Execuție SQL / Triggere</h2>
+                    <button onclick="curataConsola()" class="text-xs text-zinc-400 hover:text-white">Șterge</button>
+                </div>
+                <div id="sql-console" class="flex-1 bg-black border border-zinc-800 rounded p-3 font-mono text-xs overflow-y-auto space-y-2 text-green-400">
+                    <div class="text-zinc-500">-- Sistemul de baze de date a fost inițializat.</div>
+                    <div>&gt; SELECT * FROM V_Clasament_Echipe; (3 rânduri returnate)</div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <script>
+        // Datele initiale (oglindesc fidel scriptul baza_de_date.sql)
+        let jucatori = [
+            { id: 1, nickname: 's1mple_ro', echipaId: 10, rol: 'AWPer', elo: 2150 },
+            { id: 2, nickname: 'iM_legend', echipaId: 10, rol: 'Entry Fragger', elo: 2080 },
+            { id: 3, nickname: 'karrigan_gl', echipaId: 10, rol: 'IGL', elo: 1920 },
+            { id: 4, nickname: 'm0NESY_peek', echipaId: 20, rol: 'AWPer', elo: 2210 },
+            { id: 5, nickname: 'niko_deagle', echipaId: 20, rol: 'Entry Fragger', elo: 1990 },
+            { id: 6, nickname: 'zywoo_ace', echipaId: 30, rol: 'IGL', elo: 2180 }
+        ];
+
+        let echipe = [
+            { id: 10, nume: 'Danube Wolves', tag: 'DW', capitan: 's1mple_ro' },
+            { id: 20, nume: 'Vortex Gaming', tag: 'VTX', capitan: 'm0NESY_peek' },
+            { id: 30, nume: 'Nexus Titans', tag: 'NXS', capitan: 'zywoo_ace' }
+        ];
+
+        let meciuri = [
+            { id: 1000, runda: 'Semifinala 1', echipa1Id: 10, echipa2Id: 20, scor1: 13, scor2: 9, castigatorId: 10, status: 'Finalizat' },
+            { id: 1001, runda: 'Finala Mare', echipa1Id: 10, echipa2Id: 30, scor1: 0, scor2: 0, castigatorId: null, status: 'Programat' }
+        ];
+
+        let inscrieri = [
+            { turneuId: 100, echipaId: 10 },
+            { turneuId: 100, echipaId: 20 },
+            { turneuId: 100, echipaId: 30 }
+        ];
+
+        function logSQL(mesaj, tip = 'succes') {
+            const consola = document.getElementById('sql-console');
+            const div = document.createElement('div');
+            if (tip === 'eroare') {
+                div.className = 'text-red-400 font-semibold border-l-2 border-red-500 pl-2';
+            } else if (tip === 'trigger') {
+                div.className = 'text-amber-300 border-l-2 border-amber-500 pl-2';
+            } else {
+                div.className = 'text-green-400';
+            }
+            div.innerText = mesaj;
+            consola.appendChild(div);
+            consola.scrollTop = consola.scrollHeight;
+        }
+
+        function curataConsola() {
+            document.getElementById('sql-console').innerHTML = '';
+        }
+
+        function randeazaTot() {
+            // 1. Calculam View-ul V_Clasament_Echipe
+            const tbodyClasament = document.getElementById('tabel-clasament');
+            tbodyClasament.innerHTML = '';
+
+            let dateView = echipe.map(e => {
+                let membri = jucatori.filter(j => j.echipaId === e.id);
+                let eloMediu = membri.length ? Math.round(membri.reduce((s, j) => s + j.elo, 0) / membri.length) : 1000;
+                let victorii = meciuri.filter(m => m.castigatorId === e.id).length;
+                return { ...e, eloMediu, victorii };
+            }).sort((a, b) => b.eloMediu - a.eloMediu);
+
+            dateView.forEach(e => {
+                tbodyClasament.innerHTML += `
+                    <tr class="hover:bg-zinc-800/50">
+                        <td class="py-3 px-2 text-zinc-400">#${e.id}</td>
+                        <td class="py-3 px-2 font-bold text-white">${e.nume}</td>
+                        <td class="py-3 px-2"><span class="bg-zinc-800 text-zinc-300 px-2 py-0.5 rounded text-xs">[${e.tag}]</span></td>
+                        <td class="py-3 px-2 text-zinc-300">${e.capitan}</td>
+                        <td class="py-3 px-2 text-center font-bold faceit-orange">${e.eloMediu}</td>
+                        <td class="py-3 px-2 text-center font-semibold text-green-400">${e.victorii}</td>
+                    </tr>
+                `;
+            });
+
+            // 2. Randam Meciurile
+            const containerMeciuri = document.getElementById('lista-meciuri');
+            containerMeciuri.innerHTML = '';
+
+            meciuri.forEach(m => {
+                let e1 = echipe.find(e => e.id === m.echipa1Id);
+                let e2 = echipe.find(e => e.id === m.echipa2Id);
+                let esteFinalizat = m.status === 'Finalizat';
+
+                containerMeciuri.innerHTML += `
+                    <div class="bg-zinc-900 border border-zinc-800 rounded-lg p-4 flex flex-col md:flex-row justify-between items-center gap-4">
+                        <div class="text-xs font-semibold uppercase tracking-wider text-zinc-400 w-28">
+                            ${m.runda}
+                            <div class="mt-1 ${esteFinalizat ? 'text-green-500' : 'text-amber-400'}">● ${m.status}</div>
+                        </div>
+
+                        <div class="flex items-center gap-3 flex-1 justify-center">
+                            <span class="font-bold text-white text-right w-32 ${m.castigatorId === e1.id ? 'faceit-orange' : ''}">${e1.nume}</span>
+                            <input id="scor1-${m.id}" type="number" min="0" value="${m.scor1}" ${esteFinalizat ? 'disabled' : ''} class="w-14 bg-zinc-800 border border-zinc-700 rounded text-center py-1 text-white font-bold">
+                            <span class="text-zinc-500 font-bold">:</span>
+                            <input id="scor2-${m.id}" type="number" min="0" value="${m.scor2}" ${esteFinalizat ? 'disabled' : ''} class="w-14 bg-zinc-800 border border-zinc-700 rounded text-center py-1 text-white font-bold">
+                            <span class="font-bold text-white text-left w-32 ${m.castigatorId === e2.id ? 'faceit-orange' : ''}">${e2.nume}</span>
+                        </div>
+
+                        <div>
+                            ${esteFinalizat 
+                                ? `<span class="text-xs bg-zinc-800 text-zinc-400 px-3 py-1.5 rounded">Meci Închis</span>`
+                                : `<button onclick="finalizeazaMeci(${m.id})" class="bg-faceit text-white text-xs font-bold px-3 py-2 rounded transition">Finalizează (Apel Procedură)</button>`
+                            }
+                        </div>
+                    </div>
+                `;
+            });
+
+            // 3. Randam Jucatorii
+            const tbodyJucatori = document.getElementById('tabel-jucatori');
+            tbodyJucatori.innerHTML = '';
+            jucatori.forEach(j => {
+                let ech = echipe.find(e => e.id === j.echipaId);
+                tbodyJucatori.innerHTML += `
+                    <tr>
+                        <td class="py-2 px-2 text-zinc-500">${j.id}</td>
+                        <td class="py-2 px-2 font-semibold text-white">${j.nickname}</td>
+                        <td class="py-2 px-2 text-zinc-400">${ech ? ech.nume : '-'}</td>
+                        <td class="py-2 px-2 text-xs text-zinc-400">${j.rol}</td>
+                        <td class="py-2 px-2 font-mono font-bold text-orange-400">${j.elo}</td>
+                    </tr>
+                `;
+            });
+
+            // 4. Populam Select-ul de echipe
+            const selEchipa = document.getElementById('select-echipa');
+            selEchipa.innerHTML = '';
+            echipe.forEach(e => {
+                selEchipa.innerHTML += `<option value="${e.id}">${e.nume} [${e.tag}]</option>`;
+            });
+        }
+
+        // Simulare fidela a procedurii proc_inregistreaza_scor si a triggerului trg_finalizare_meci_elo
+        function finalizeazaMeci(idMeci) {
+            const s1 = parseInt(document.getElementById(`scor1-${idMeci}`).value);
+            const s2 = parseInt(document.getElementById(`scor2-${idMeci}`).value);
+
+            logSQL(`> EXEC proc_inregistreaza_scor(${idMeci}, ${s1}, ${s2});`);
+
+            if (s1 === s2) {
+                logSQL(`ORA-20003: Eroare Trigger (trg_finalizare_meci_elo): Un meci de turneu nu se poate termina la egalitate! ROLLBACK executat.`, 'eroare');
+                return;
+            }
+
+            let meci = meciuri.find(m => m.id === idMeci);
+            meci.scor1 = s1;
+            meci.scor2 = s2;
+            meci.status = 'Finalizat';
+
+            let idCastigator = s1 > s2 ? meci.echipa1Id : meci.echipa2Id;
+            let idPierzator = s1 > s2 ? meci.echipa2Id : meci.echipa1Id;
+            meci.castigatorId = idCastigator;
+
+            jucatori.forEach(j => {
+                if (j.echipaId === idCastigator) j.elo += 25;
+                if (j.echipaId === idPierzator) j.elo = Math.max(0, j.elo - 20);
+            });
+
+            logSQL(`[TRIGGER trg_finalizare_meci_elo]: Câștigător setat automat (ID Echipă ${idCastigator}). Jucătorii câștigători +25 ELO, învinși -20 ELO.`, 'trigger');
+            logSQL(`> COMMIT; -- Tranzacție finalizată cu succes.`);
+            randeazaTot();
+        }
+
+        // Simulare fidela a triggerului trg_validare_capacitate_turneu
+        function inscrieEchipa() {
+            const turneuId = parseInt(document.getElementById('select-turneu').value);
+            const echipaId = parseInt(document.getElementById('select-echipa').value);
+
+            logSQL(`> INSERT INTO Inscrieri_Turneu (id_turneu, id_echipa) VALUES (${turneuId}, ${echipaId});`);
+
+            if (turneuId === 100) {
+                logSQL(`ORA-20001: Eroare Trigger (trg_validare_capacitate_turneu): Înscrierile pentru acest turneu sunt închise!`, 'eroare');
+                return;
+            }
+
+            if (inscrieri.some(i => i.turneuId === turneuId && i.echipaId === echipaId)) {
+                logSQL(`ORA-00001: Eroare Constrângere PK_INSCRIERI: Echipa este deja înscrisă în acest turneu!`, 'eroare');
+                return;
+            }
+
+            inscrieri.push({ turneuId, echipaId });
+            logSQL(`[TRIGGER trg_validare_capacitate_turneu]: Validare OK. Echipa ${echipaId} a fost înscrisă în turneul ${turneuId}.`, 'trigger');
+        }
+
+        function adaugaEchipa() {
+            const nume = document.getElementById('inp-nume-echipa').value.trim();
+            const tag = document.getElementById('inp-tag').value.trim().toUpperCase();
+            const capitan = document.getElementById('inp-capitan').value.trim();
+            const elo = parseInt(document.getElementById('inp-elo').value) || 1500;
+
+            if (!nume || !tag || !capitan) {
+                logSQL(`ORA-01400: Nu se poate insera NULL în coloanele obligatorii (NOT NULL)!`, 'eroare');
+                return;
+            }
+
+            const nouJucatorId = jucatori.length + 1;
+            const nouaEchipaId = (echipe.length + 1) * 10;
+
+            jucatori.push({ id: nouJucatorId, nickname: capitan, echipaId: nouaEchipaId, rol: 'IGL', elo: elo });
+            echipe.push({ id: nouaEchipaId, nume: nume, tag: tag, capitan: capitan });
+
+            // Adaugam automat si un meci nou in turneu ca sa il poti testa
+            meciuri.push({
+                id: 1000 + meciuri.length,
+                runda: 'Meci Baraj',
+                echipa1Id: nouaEchipaId,
+                echipa2Id: 20,
+                scor1: 0,
+                scor2: 0,
+                castigatorId: null,
+                status: 'Programat'
+            });
+
+            logSQL(`> INSERT INTO Jucatori VALUES (${nouJucatorId}, '${capitan}', ${elo});`);
+            logSQL(`> INSERT INTO Echipe VALUES (${nouaEchipaId}, '${nume}', '${tag}', ${nouJucatorId});`);
+            logSQL(`> COMMIT; -- Echipa ${nume} a fost creată și adăugată în clasament!`);
+
+            document.getElementById('inp-nume-echipa').value = '';
+            document.getElementById('inp-tag').value = '';
+            document.getElementById('inp-capitan').value = '';
+            randeazaTot();
+        }
+
+        // Initializare la deschiderea paginii
+        randeazaTot();
+    </script>
+</body>
+</html>
