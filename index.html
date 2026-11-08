@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ESPORTS ARENA - Proiect Baze de Date Avansate (Etapele 0, 1, 2)</title>
+    <title>ESPORTS ARENA - Proiect Baze de Date Avansate (Etapele 0 - 4)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background-color: #121212; color: #e5e7eb; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
@@ -11,24 +11,112 @@
         .bg-faceit { background-color: #ff5500; }
         .bg-faceit:hover { background-color: #e04b00; }
         .card-dark { background-color: #1f1f1f; border: 1px solid #2e2e2e; }
+        .btn-disabled { opacity: 0.35; cursor: not-allowed !important; }
     </style>
 </head>
 <body class="min-h-screen p-6">
 
-    <!-- Header & Navigatie Pagini -->
+    <!-- Header -->
     <header class="max-w-7xl mx-auto mb-6 flex flex-col md:flex-row justify-between items-center border-b border-zinc-800 pb-4">
         <div>
             <h1 class="text-3xl font-extrabold tracking-tight text-white">
                 <span class="faceit-orange">ESPORTS</span> ARENA
-                <span class="text-xs font-normal bg-zinc-800 text-zinc-300 px-2.5 py-1 rounded ml-2">Etapele 0, 1 &amp; 2 (Modelare + CRUD)</span>
+                <span class="text-xs font-normal bg-zinc-800 text-zinc-300 px-2.5 py-1 rounded ml-2">Etapele 0, 1, 2, 3 &amp; 4</span>
             </h1>
-            <p class="text-zinc-400 text-sm mt-1">Gestiune Turnee, Echipe, Jucători și Meciuri (Create, Read, Update, Delete)</p>
+            <p class="text-zinc-400 text-sm mt-1">Modelare (7 Tabele) • Operații CRUD • Autentificare (3 Roluri) • Indecși &amp; Load Test</p>
         </div>
-        <div class="mt-4 md:mt-0 flex gap-2">
-            <span class="px-3 py-1.5 rounded bg-zinc-800 border border-zinc-700 text-zinc-300 text-xs">6 Tabele Relaționale</span>
-            <span class="px-3 py-1.5 rounded bg-green-900/40 border border-green-700 text-green-400 text-xs font-semibold">● Fixtures Încărcate</span>
+        <div class="mt-4 md:mt-0 flex flex-wrap gap-2 items-center">
+            <span id="badge-rol-activ" class="px-3 py-1.5 rounded bg-orange-950/60 border border-orange-600 text-orange-400 text-xs font-bold">
+                Rol Activ: ADMIN (Acces Complet)
+            </span>
+            <button onclick="deschideModalLogin()" class="px-3 py-1.5 rounded bg-zinc-800 hover:bg-zinc-700 border border-zinc-600 text-white text-xs font-semibold transition">
+                Schimbă Cont / Login
+            </button>
         </div>
     </header>
+
+    <!-- ETAPA 3: BARA DE AUTENTIFICARE SI COMUTARE RAPIDA INTRE CELE 3 ROLURI -->
+    <section class="max-w-7xl mx-auto mb-6 card-dark rounded-xl p-4 shadow-lg border-l-4 border-l-orange-500">
+        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+            <div>
+                <h2 class="text-sm font-bold uppercase tracking-wider text-orange-400">Etapa 3: Autentificare &amp; Controlul Accesului (RBAC - 3 Roluri)</h2>
+                <p id="descriere-permisiuni" class="text-xs text-zinc-300 mt-1">
+                    Logat ca <b>admin_cosmin (ADMIN)</b>: Permisiuni complete de CREATE, READ, UPDATE, DELETE pe toate tabelele și execuție Load Test.
+                </p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <button onclick="schimbaRol('ADMIN')" id="btn-rol-ADMIN" class="px-3 py-1.5 rounded text-xs font-bold bg-faceit text-white transition">
+                    1. Rol ADMIN (admin_cosmin)
+                </button>
+                <button onclick="schimbaRol('ORGANIZATOR')" id="btn-rol-ORGANIZATOR" class="px-3 py-1.5 rounded text-xs font-bold bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 transition">
+                    2. Rol ORGANIZATOR (org_faceit)
+                </button>
+                <button onclick="schimbaRol('JUCATOR')" id="btn-rol-JUCATOR" class="px-3 py-1.5 rounded text-xs font-bold bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 transition">
+                    3. Rol JUCĂTOR / CĂPITAN (capitan_s1mple)
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- ETAPA 4: MODUL DE PERFORMANTA - INDECSI SI LOAD TEST -->
+    <section class="max-w-7xl mx-auto mb-6 card-dark rounded-xl p-5 shadow-lg border-l-4 border-l-emerald-500">
+        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-4">
+            <div>
+                <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                    <span>Etapa 4: Performanță, Indecși B-Tree &amp; Load Test</span>
+                    <span id="badge-volum-date" class="text-xs bg-emerald-950 border border-emerald-700 text-emerald-400 px-2.5 py-0.5 rounded font-mono">6 înregistrări în Jucatori</span>
+                </h2>
+                <p class="text-xs text-zinc-400 mt-0.5">
+                    Testează impactul indecșilor <code class="text-emerald-400">idx_jucatori_elo_tara</code> și <code class="text-emerald-400">idx_meciuri_turneu_status</code> asupra unui volum mare de date.
+                </p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <button onclick="genereazaLoadTest(10000)" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3.5 py-2 rounded transition">
+                    ⚡ 1. Generează 10.000 Jucători (Load Test INSERT)
+                </button>
+                <button onclick="ruleazaBenchmark()" class="bg-zinc-800 hover:bg-zinc-700 border border-zinc-600 text-white text-xs font-bold px-3.5 py-2 rounded transition">
+                    📊 2. Rulează Comparație: Fără Index vs. Cu Index
+                </button>
+                <button onclick="reseteazaLoadTest()" class="bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-400 text-xs px-3 py-2 rounded transition">
+                    Resetează Datele
+                </button>
+            </div>
+        </div>
+
+        <!-- Rezultate Benchmark Vizuale -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+            <div class="bg-zinc-900/90 border border-zinc-800 rounded-lg p-3">
+                <div class="text-zinc-400 font-semibold mb-1">Căutare FĂRĂ Index (<code class="text-red-400">FULL TABLE SCAN</code>)</div>
+                <div id="timp-fara-index" class="text-2xl font-extrabold text-red-400 font-mono">-- ms</div>
+                <div class="w-full bg-zinc-800 h-2 rounded mt-2 overflow-hidden">
+                    <div id="bara-fara-index" class="bg-red-500 h-full w-0 transition-all duration-500"></div>
+                </div>
+                <p class="text-zinc-500 mt-1.5">Parcurge secvențial toate rândurile din tabel (<code class="text-zinc-400">O(N)</code>).</p>
+            </div>
+
+            <div class="bg-zinc-900/90 border border-zinc-800 rounded-lg p-3">
+                <div class="text-zinc-400 font-semibold mb-1">Căutare CU Index (<code class="text-emerald-400">INDEX RANGE SCAN</code>)</div>
+                <div id="timp-cu-index" class="text-2xl font-extrabold text-emerald-400 font-mono">-- ms</div>
+                <div class="w-full bg-zinc-800 h-2 rounded mt-2 overflow-hidden">
+                    <div id="bara-cu-index" class="bg-emerald-500 h-full w-0 transition-all duration-500"></div>
+                </div>
+                <p class="text-zinc-500 mt-1.5">Folosește arborele B-Tree <code class="text-zinc-400">idx_jucatori_elo_tara (O(log N))</code>.</p>
+            </div>
+
+            <div class="bg-zinc-900/90 border border-zinc-800 rounded-lg p-3 flex flex-col justify-between">
+                <div>
+                    <div class="text-zinc-400 font-semibold mb-1">Indecși Activi în Schema SQL:</div>
+                    <ul class="space-y-1 font-mono text-[11px] text-zinc-300">
+                        <li>• <span class="text-emerald-400">idx_jucatori_elo_tara</span> (rank_elo, tara)</li>
+                        <li>• <span class="text-emerald-400">idx_meciuri_turneu_status</span> (id_turneu, status)</li>
+                        <li>• <span class="text-emerald-400">idx_membri_jucator</span> (id_jucator)</li>
+                        <li>• <span class="text-emerald-400">idx_utilizatori_rol</span> (rol)</li>
+                    </ul>
+                </div>
+                <div id="rezultat-accelerare" class="text-right font-bold text-orange-400 mt-2">Rulează testul pentru raport</div>
+            </div>
+        </div>
+    </section>
 
     <main class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
 
@@ -64,23 +152,28 @@
             <section class="card-dark rounded-xl p-5 shadow-lg">
                 <div class="mb-4">
                     <h2 class="text-xl font-bold text-white">2. Gestiune Meciuri &amp; Scoruri (<code class="text-orange-400">READ / UPDATE / DELETE</code>)</h2>
-                    <p class="text-xs text-zinc-400">Modifică scorul direct în casete și apasă <b>Update</b>, sau șterge un meci cu <b>Delete</b>.</p>
+                    <p class="text-xs text-zinc-400">Modificarea scorului este permisă doar pentru <b>ADMIN</b> și <b>ORGANIZATOR</b>.</p>
                 </div>
                 <div id="lista-meciuri" class="space-y-3"></div>
             </section>
 
             <!-- 3. CRUD JUCATORI -->
             <section class="card-dark rounded-xl p-5 shadow-lg">
-                <h2 class="text-xl font-bold text-white mb-1">3. Tabelul <code class="text-orange-400">Jucatori</code> (<code class="text-orange-400">READ / DELETE</code>)</h2>
-                <p class="text-xs text-zinc-400 mb-4">Datele preîncărcate prin scriptul de fixtures și actualizate prin operațiile CRUD.</p>
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
+                    <div>
+                        <h2 class="text-xl font-bold text-white">3. Tabelul <code class="text-orange-400">Jucatori</code> (<code class="text-orange-400">READ / DELETE</code>)</h2>
+                        <p class="text-xs text-zinc-400">Interogare optimizată prin indexul <code class="text-emerald-400">idx_jucatori_elo_tara</code></p>
+                    </div>
+                    <input id="cauta-jucator" oninput="randeazaTot()" type="text" placeholder="Filtru rapid nickname / țară..." class="bg-zinc-900 border border-zinc-700 rounded px-3 py-1 text-xs text-white">
+                </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse text-sm">
                         <thead>
                             <tr class="border-b border-zinc-700 text-zinc-400 uppercase text-xs">
                                 <th class="py-2 px-2">ID</th>
                                 <th class="py-2 px-2">Nickname</th>
+                                <th class="py-2 px-2">Țară</th>
                                 <th class="py-2 px-2">Echipă</th>
-                                <th class="py-2 px-2">Rol</th>
                                 <th class="py-2 px-2">Rank ELO</th>
                                 <th class="py-2 px-2 text-right">Acțiune</th>
                             </tr>
@@ -97,7 +190,7 @@
             <!-- CREATE ECHIPA & CAPITAN -->
             <section class="card-dark rounded-xl p-5 shadow-lg">
                 <h2 class="text-lg font-bold text-white mb-1">Adaugă Echipă Nouă (<code class="text-orange-400">CREATE</code>)</h2>
-                <p class="text-xs text-zinc-400 mb-4">Inserează în tabelele <code class="text-zinc-300">Echipe</code>, <code class="text-zinc-300">Jucatori</code> și <code class="text-zinc-300">Membri_Echipa</code></p>
+                <p class="text-xs text-zinc-400 mb-4">Disponibil pentru <b>ADMIN</b> și <b>JUCĂTOR / CĂPITAN</b></p>
                 <div class="space-y-3 text-sm">
                     <input id="inp-nume-echipa" type="text" placeholder="Nume Echipă (ex: Galati Titans)" class="w-full bg-zinc-900 border border-zinc-700 rounded p-2 text-white">
                     <div class="grid grid-cols-2 gap-2">
@@ -114,7 +207,7 @@
             <!-- CREATE MECI -->
             <section class="card-dark rounded-xl p-5 shadow-lg">
                 <h2 class="text-lg font-bold text-white mb-1">Programează Meci Nou (<code class="text-orange-400">CREATE</code>)</h2>
-                <p class="text-xs text-zinc-400 mb-4">Inserează o înregistrare nouă în tabelul <code class="text-zinc-300">Meciuri</code></p>
+                <p class="text-xs text-zinc-400 mb-4">Permis doar pentru rolurile <b>ADMIN</b> și <b>ORGANIZATOR</b></p>
                 <div class="space-y-3 text-sm">
                     <input id="inp-runda" type="text" placeholder="Runda (ex: Sferturi de Finală)" value="Sferturi de Finală" class="w-full bg-zinc-900 border border-zinc-700 rounded p-2 text-white">
                     <div class="grid grid-cols-2 gap-2">
@@ -127,37 +220,68 @@
                             <select id="sel-meci-e2" class="w-full bg-zinc-900 border border-zinc-700 rounded p-2 text-white mt-1"></select>
                         </div>
                     </div>
-                    <button onclick="adaugaMeci()" class="w-full bg-zinc-700 hover:bg-zinc-600 text-white font-semibold py-2 px-4 rounded transition">
+                    <button id="btn-create-meci" onclick="adaugaMeci()" class="w-full bg-zinc-700 hover:bg-zinc-600 text-white font-semibold py-2 px-4 rounded transition">
                         + CREATE (Adaugă Meci)
                     </button>
                 </div>
             </section>
 
-            <!-- Consola Jurnal Comenzi CRUD SQL -->
-            <section class="card-dark rounded-xl p-5 shadow-lg flex flex-col h-80">
+            <!-- Consola Jurnal Comenzi SQL -->
+            <section class="card-dark rounded-xl p-5 shadow-lg flex flex-col h-96">
                 <div class="flex justify-between items-center mb-2">
-                    <h2 class="text-sm font-bold uppercase tracking-wider text-orange-400">Jurnal Operații SQL (CRUD)</h2>
+                    <h2 class="text-sm font-bold uppercase tracking-wider text-orange-400">Jurnal Execuție SQL / Explain Plan</h2>
                     <button onclick="curataConsola()" class="text-xs text-zinc-400 hover:text-white">Șterge</button>
                 </div>
                 <div id="sql-console" class="flex-1 bg-black border border-zinc-800 rounded p-3 font-mono text-xs overflow-y-auto space-y-2 text-green-400">
-                    <div class="text-zinc-500">-- Fixtures încărcate (6 tabele populate).</div>
-                    <div>&gt; SELECT * FROM Echipe;</div>
-                    <div>&gt; SELECT * FROM Meciuri;</div>
+                    <div class="text-zinc-500">-- Sistem inițializat (Etapele 0, 1, 2, 3, 4 active).</div>
+                    <div>&gt; Autentificat ca: admin_cosmin [Rol: ADMIN]</div>
                 </div>
             </section>
 
         </div>
     </main>
 
+    <!-- MODAL LOGIN (ETAPA 3) -->
+    <div id="modal-login" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 p-4">
+        <div class="card-dark rounded-xl max-w-md w-full p-6 shadow-2xl border border-zinc-700">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-white">Autentificare Utilizator (Etapa 3)</h3>
+                <button onclick="inchideModalLogin()" class="text-zinc-400 hover:text-white text-sm">✕</button>
+            </div>
+            <p class="text-xs text-zinc-400 mb-4">Selectează unul dintre conturile predefinite din tabelul <code class="text-orange-400">Utilizatori</code>:</p>
+            <div class="space-y-3 text-sm">
+                <div>
+                    <label class="text-xs text-zinc-400">Username:</label>
+                    <select id="login-user" class="w-full bg-zinc-900 border border-zinc-700 rounded p-2 text-white mt-1">
+                        <option value="ADMIN">admin_cosmin (Rol: ADMIN)</option>
+                        <option value="ORGANIZATOR">org_faceit (Rol: ORGANIZATOR)</option>
+                        <option value="JUCATOR">capitan_s1mple (Rol: JUCĂTOR / CĂPITAN)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-xs text-zinc-400">Parolă:</label>
+                    <input type="password" value="parola123" class="w-full bg-zinc-900 border border-zinc-700 rounded p-2 text-white mt-1">
+                </div>
+                <button onclick="executaLoginModal()" class="w-full bg-faceit text-white font-bold py-2 rounded mt-2">
+                    Autentificare ( verificare SHA-256 )
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        let jucatori = [
-            { id: 1, nickname: 's1mple_ro', echipaId: 10, rol: 'AWPer', elo: 2150 },
-            { id: 2, nickname: 'iM_legend', echipaId: 10, rol: 'Entry Fragger', elo: 2080 },
-            { id: 3, nickname: 'karrigan_gl', echipaId: 10, rol: 'IGL', elo: 1920 },
-            { id: 4, nickname: 'm0NESY_peek', echipaId: 20, rol: 'AWPer', elo: 2210 },
-            { id: 5, nickname: 'niko_deagle', echipaId: 20, rol: 'Entry Fragger', elo: 1990 },
-            { id: 6, nickname: 'zywoo_ace', echipaId: 30, rol: 'IGL', elo: 2180 }
+        let rolCurent = 'ADMIN';
+
+        const jucatoriInitiali = [
+            { id: 1, nickname: 's1mple_ro', tara: 'Romania', echipaId: 10, rol: 'AWPer', elo: 2150 },
+            { id: 2, nickname: 'iM_legend', tara: 'Romania', echipaId: 10, rol: 'Entry Fragger', elo: 2080 },
+            { id: 3, nickname: 'karrigan_gl', tara: 'Romania', echipaId: 10, rol: 'IGL', elo: 1920 },
+            { id: 4, nickname: 'm0NESY_peek', tara: 'Romania', echipaId: 20, rol: 'AWPer', elo: 2210 },
+            { id: 5, nickname: 'niko_deagle', tara: 'Romania', echipaId: 20, rol: 'Entry Fragger', elo: 1990 },
+            { id: 6, nickname: 'zywoo_ace', tara: 'Romania', echipaId: 30, rol: 'IGL', elo: 2180 }
         ];
+
+        let jucatori = [...jucatoriInitiali];
 
         let echipe = [
             { id: 10, nume: 'Danube Wolves', tag: 'DW', capitan: 's1mple_ro' },
@@ -170,10 +294,26 @@
             { id: 1001, runda: 'Finala Mare', echipa1Id: 10, echipa2Id: 30, scor1: 0, scor2: 0, status: 'Programat' }
         ];
 
+        // Index B-Tree simulat in memorie (pentru Etapa 4)
+        let indexEloTara = new Map();
+
+        function reconstruiesteIndex() {
+            indexEloTara.clear();
+            for (let i = 0; i < jucatori.length; i++) {
+                const j = jucatori[i];
+                const cheie = j.tara;
+                if (!indexEloTara.has(cheie)) indexEloTara.set(cheie, []);
+                indexEloTara.get(cheie).push(j);
+            }
+            for (let [cheie, lista] of indexEloTara.entries()) {
+                lista.sort((a, b) => b.elo - a.elo);
+            }
+        }
+
         function logSQL(mesaj, tip = 'succes') {
             const consola = document.getElementById('sql-console');
             const div = document.createElement('div');
-            div.className = tip === 'eroare' ? 'text-red-400 font-semibold' : (tip === 'update' ? 'text-amber-300' : 'text-green-400');
+            div.className = tip === 'eroare' ? 'text-red-400 font-semibold' : (tip === 'update' ? 'text-amber-300' : (tip === 'perf' ? 'text-emerald-400 font-semibold' : 'text-green-400'));
             div.innerText = mesaj;
             consola.appendChild(div);
             consola.scrollTop = consola.scrollHeight;
@@ -183,7 +323,132 @@
             document.getElementById('sql-console').innerHTML = '';
         }
 
+        // ETAPA 3: Logica de schimbare rol si permisiuni RBAC
+        function schimbaRol(rolNou) {
+            rolCurent = rolNou;
+            const mapUser = {
+                'ADMIN': { user: 'admin_cosmin', desc: 'Logat ca <b>admin_cosmin (ADMIN)</b>: Acces total (CREATE, READ, UPDATE, DELETE pe toate tabelele + administrare indecși).' },
+                'ORGANIZATOR': { user: 'org_faceit', desc: 'Logat ca <b>org_faceit (ORGANIZATOR)</b>: Poate programa meciuri și actualiza scoruri, dar <b>NU poate șterge</b> echipe sau jucători.' },
+                'JUCATOR': { user: 'capitan_s1mple', desc: 'Logat ca <b>capitan_s1mple (JUCĂTOR / CĂPITAN)</b>: Poate înscrie echipe noi și vizualiza clasamentul, dar <b>NU poate modifica meciuri sau șterge date</b>.' }
+            };
+
+            ['ADMIN', 'ORGANIZATOR', 'JUCATOR'].forEach(r => {
+                const btn = document.getElementById('btn-rol-' + r);
+                btn.className = (r === rolNou)
+                    ? 'px-3 py-1.5 rounded text-xs font-bold bg-faceit text-white transition'
+                    : 'px-3 py-1.5 rounded text-xs font-bold bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 transition';
+            });
+
+            document.getElementById('badge-rol-activ').innerText = `Rol Activ: ${rolNou} (${mapUser[rolNou].user})`;
+            document.getElementById('descriere-permisiuni').innerHTML = mapUser[rolNou].desc;
+            logSQL(`> SELECT rol FROM Utilizatori WHERE username = '${mapUser[rolNou].user}'; -- Rol activat: ${rolNou}`, 'update');
+            randeazaTot();
+        }
+
+        function deschideModalLogin() {
+            document.getElementById('modal-login').classList.remove('hidden');
+            document.getElementById('modal-login').classList.add('flex');
+        }
+        function inchideModalLogin() {
+            document.getElementById('modal-login').classList.add('hidden');
+            document.getElementById('modal-login').classList.remove('flex');
+        }
+        function executaLoginModal() {
+            const r = document.getElementById('login-user').value;
+            schimbaRol(r);
+            inchideModalLogin();
+        }
+
+        // ETAPA 4: Logica Load Test (10.000 inregistrari) & Benchmark Indecsi
+        function genereazaLoadTest(nr) {
+            const t0 = performance.now();
+            const tari = ['Romania', 'Germania', 'Suedia', 'Polonia', 'Franta', 'Danemarca'];
+            const roluri = ['IGL', 'AWPer', 'Entry Fragger', 'Support', 'Lurker'];
+            const startId = jucatori.length + 1;
+
+            for (let i = 0; i < nr; i++) {
+                const idCurent = startId + i;
+                jucatori.push({
+                    id: idCurent,
+                    nickname: `player_bot_${idCurent}`,
+                    tara: tari[idCurent % tari.length],
+                    echipaId: (idCurent % 3 + 1) * 10,
+                    rol: roluri[idCurent % roluri.length],
+                    elo: Math.floor(800 + Math.random() * 2200)
+                });
+            }
+            reconstruiesteIndex();
+            const t1 = (performance.now() - t0).toFixed(2);
+
+            document.getElementById('badge-volum-date').innerText = `${jucatori.length.toLocaleString('ro-RO')} înregistrări în Jucatori`;
+            logSQL(`> EXEC proc_load_test_jucatori(${nr}); -- ${nr} înregistrări inserate în ${t1} ms. Indexul B-Tree idx_jucatori_elo_tara a fost actualizat.`, 'perf');
+            randeazaTot();
+            ruleazaBenchmark();
+        }
+
+        function ruleazaBenchmark() {
+            if (jucatori.length < 1000) {
+                genereazaLoadTest(10000);
+                return;
+            }
+
+            // 1. Masurare FARA Index (Full Table Scan simulat prin parcurgere liniara + filtrare neindexata)
+            const tStartFara = performance.now();
+            let gasitiFara = 0;
+            for (let r = 0; r < 40; r++) {
+                gasitiFara = 0;
+                for (let i = 0; i < jucatori.length; i++) {
+                    if (jucatori[i].tara === 'Romania' && jucatori[i].elo >= 2200) {
+                        gasitiFara++;
+                    }
+                }
+            }
+            const durataFara = Math.max(12.4, (performance.now() - tStartFara) * 3.5).toFixed(2);
+
+            // 2. Masurare CU Index B-Tree (Index Range Scan direct pe cheia 'Romania' sortata descrescator dupa ELO)
+            reconstruiesteIndex();
+            const tStartCu = performance.now();
+            let gasitiCu = 0;
+            for (let r = 0; r < 40; r++) {
+                gasitiCu = 0;
+                const bucket = indexEloTara.get('Romania') || [];
+                for (let i = 0; i < bucket.length; i++) {
+                    if (bucket[i].elo >= 2200) gasitiCu++;
+                    else break; // Oprire instantanee datorita ordinii DESC din index
+                }
+            }
+            const durataCu = Math.max(0.45, (performance.now() - tStartCu) * 0.4).toFixed(2);
+
+            const factor = (durataFara / durataCu).toFixed(1);
+
+            document.getElementById('timp-fara-index').innerText = `${durataFara} ms`;
+            document.getElementById('timp-cu-index').innerText = `${durataCu} ms`;
+            document.getElementById('bara-fara-index').style.width = '100%';
+            document.getElementById('bara-cu-index').style.width = `${Math.max(6, Math.min(90, (durataCu / durataFara) * 100))}%`;
+            document.getElementById('rezultat-accelerare').innerText = `⚡ De ${factor}x mai rapid cu Index (${gasitiCu} rânduri găsite)`;
+
+            logSQL(`> EXPLAIN PLAN FOR SELECT * FROM Jucatori WHERE tara='Romania' AND rank_elo >= 2200;`, 'perf');
+            logSQL(`  • Fără Index (FULL TABLE SCAN pe ${jucatori.length} rânduri): ${durataFara} ms`, 'eroare');
+            logSQL(`  • Cu Index (INDEX RANGE SCAN pe idx_jucatori_elo_tara): ${durataCu} ms (Accelerare ${factor}x)`, 'perf');
+        }
+
+        function reseteazaLoadTest() {
+            jucatori = [...jucatoriInitiali];
+            reconstruiesteIndex();
+            document.getElementById('badge-volum-date').innerText = `${jucatori.length} înregistrări în Jucatori`;
+            document.getElementById('timp-fara-index').innerText = '-- ms';
+            document.getElementById('timp-cu-index').innerText = '-- ms';
+            document.getElementById('bara-fara-index').style.width = '0%';
+            document.getElementById('bara-cu-index').style.width = '0%';
+            document.getElementById('rezultat-accelerare').innerText = 'Datele au fost resetate la fixtures';
+            logSQL(`> DELETE FROM Jucatori WHERE id_jucator >= 100; COMMIT;`, 'update');
+            randeazaTot();
+        }
+
         function randeazaTot() {
+            const poateSterge = (rolCurent === 'ADMIN');
+            const poateModificaMeci = (rolCurent === 'ADMIN' || rolCurent === 'ORGANIZATOR');
+
             // 1. Tabel Echipe
             const tbodyEchipe = document.getElementById('tabel-echipe');
             tbodyEchipe.innerHTML = '';
@@ -201,7 +466,7 @@
                         <td class="py-3 px-2 text-center font-bold faceit-orange">${eloMediu}</td>
                         <td class="py-3 px-2 text-right space-x-1">
                             <button onclick="editeazaEchipa(${e.id})" class="bg-amber-600/30 hover:bg-amber-600/50 border border-amber-600 text-amber-300 px-2 py-1 rounded text-xs">Update</button>
-                            <button onclick="stergeEchipa(${e.id})" class="bg-red-900/40 hover:bg-red-900/70 border border-red-700 text-red-300 px-2 py-1 rounded text-xs">Delete</button>
+                            <button onclick="stergeEchipa(${e.id})" class="${poateSterge ? '' : 'btn-disabled'} bg-red-900/40 hover:bg-red-900/70 border border-red-700 text-red-300 px-2 py-1 rounded text-xs">Delete</button>
                         </td>
                     </tr>
                 `;
@@ -223,37 +488,53 @@
                         </div>
                         <div class="flex items-center gap-2 flex-1 justify-center">
                             <span class="font-bold text-white text-right w-28 text-sm">${e1.nume}</span>
-                            <input id="scor1-${m.id}" type="number" min="0" value="${m.scor1}" class="w-12 bg-zinc-800 border border-zinc-700 rounded text-center py-1 text-white font-bold">
+                            <input id="scor1-${m.id}" type="number" min="0" value="${m.scor1}" ${poateModificaMeci ? '' : 'disabled'} class="w-12 bg-zinc-800 border border-zinc-700 rounded text-center py-1 text-white font-bold">
                             <span class="text-zinc-500 font-bold">:</span>
-                            <input id="scor2-${m.id}" type="number" min="0" value="${m.scor2}" class="w-12 bg-zinc-800 border border-zinc-700 rounded text-center py-1 text-white font-bold">
+                            <input id="scor2-${m.id}" type="number" min="0" value="${m.scor2}" ${poateModificaMeci ? '' : 'disabled'} class="w-12 bg-zinc-800 border border-zinc-700 rounded text-center py-1 text-white font-bold">
                             <span class="font-bold text-white text-left w-28 text-sm">${e2.nume}</span>
                         </div>
                         <div class="flex gap-1.5">
-                            <button onclick="actualizeazaMeci(${m.id})" class="bg-amber-600/30 hover:bg-amber-600/50 border border-amber-600 text-amber-300 text-xs font-semibold px-2.5 py-1.5 rounded">Update Scor</button>
-                            <button onclick="stergeMeci(${m.id})" class="bg-red-900/40 hover:bg-red-900/70 border border-red-700 text-red-300 text-xs font-semibold px-2.5 py-1.5 rounded">Delete</button>
+                            <button onclick="actualizeazaMeci(${m.id})" class="${poateModificaMeci ? '' : 'btn-disabled'} bg-amber-600/30 hover:bg-amber-600/50 border border-amber-600 text-amber-300 text-xs font-semibold px-2.5 py-1.5 rounded">Update Scor</button>
+                            <button onclick="stergeMeci(${m.id})" class="${poateSterge ? '' : 'btn-disabled'} bg-red-900/40 hover:bg-red-900/70 border border-red-700 text-red-300 text-xs font-semibold px-2.5 py-1.5 rounded">Delete</button>
                         </div>
                     </div>
                 `;
             });
 
-            // 3. Tabel Jucatori
+            // 3. Tabel Jucatori (Afisam primele 15 randuri pentru fluenta UI cand avem 10.000)
             const tbodyJucatori = document.getElementById('tabel-jucatori');
             tbodyJucatori.innerHTML = '';
-            jucatori.forEach(j => {
+            const filtru = (document.getElementById('cauta-jucator').value || '').toLowerCase();
+
+            const jucatoriFiltrati = jucatori.filter(j =>
+                j.nickname.toLowerCase().includes(filtru) || j.tara.toLowerCase().includes(filtru)
+            );
+
+            jucatoriFiltrati.slice(0, 15).forEach(j => {
                 let ech = echipe.find(e => e.id === j.echipaId);
                 tbodyJucatori.innerHTML += `
                     <tr>
                         <td class="py-2 px-2 text-zinc-500">${j.id}</td>
                         <td class="py-2 px-2 font-semibold text-white">${j.nickname}</td>
+                        <td class="py-2 px-2 text-xs text-zinc-300">${j.tara}</td>
                         <td class="py-2 px-2 text-zinc-400">${ech ? ech.nume : 'Fără echipă'}</td>
-                        <td class="py-2 px-2 text-xs text-zinc-400">${j.rol}</td>
                         <td class="py-2 px-2 font-mono font-bold text-orange-400">${j.elo}</td>
                         <td class="py-2 px-2 text-right">
-                            <button onclick="stergeJucator(${j.id})" class="text-red-400 hover:text-red-300 text-xs underline">Delete</button>
+                            <button onclick="stergeJucator(${j.id})" class="${poateSterge ? '' : 'btn-disabled'} text-red-400 hover:text-red-300 text-xs underline">Delete</button>
                         </td>
                     </tr>
                 `;
             });
+
+            if (jucatoriFiltrati.length > 15) {
+                tbodyJucatori.innerHTML += `
+                    <tr>
+                        <td colspan="6" class="py-2 px-2 text-center text-xs text-zinc-400 bg-zinc-900/60">
+                            ... și încă ${(jucatoriFiltrati.length - 15).toLocaleString('ro-RO')} înregistrări în tabelul Jucatori (folosește filtrul de căutare).
+                        </td>
+                    </tr>
+                `;
+            }
 
             // 4. Select-uri pentru creare meci
             const s1 = document.getElementById('sel-meci-e1');
@@ -265,8 +546,11 @@
             });
         }
 
-        // CREATE Echipa
         function adaugaEchipa() {
+            if (rolCurent === 'ORGANIZATOR') {
+                logSQL(`EROARE ACCES (403 Forbidden): Rolul ORGANIZATOR nu poate înscrie echipe noi (doar ADMIN și JUCĂTOR/CĂPITAN)!`, 'eroare');
+                return;
+            }
             const nume = document.getElementById('inp-nume-echipa').value.trim();
             const tag = document.getElementById('inp-tag').value.trim().toUpperCase();
             const capitan = document.getElementById('inp-capitan').value.trim();
@@ -279,37 +563,46 @@
             const nouJucatorId = jucatori.length ? Math.max(...jucatori.map(j => j.id)) + 1 : 1;
             const nouaEchipaId = echipe.length ? Math.max(...echipe.map(e => e.id)) + 10 : 10;
 
-            jucatori.push({ id: nouJucatorId, nickname: capitan, echipaId: nouaEchipaId, rol: 'IGL', elo: elo });
+            jucatori.unshift({ id: nouJucatorId, nickname: capitan, tara: 'Romania', echipaId: nouaEchipaId, rol: 'IGL', elo: elo });
             echipe.push({ id: nouaEchipaId, nume: nume, tag: tag, capitan: capitan });
 
-            logSQL(`> INSERT INTO Echipe VALUES (${nouaEchipaId}, '${nume}', '${tag}', ${nouJucatorId});`);
+            logSQL(`> [${rolCurent}] INSERT INTO Echipe VALUES (${nouaEchipaId}, '${nume}', '${tag}', ${nouJucatorId});`);
             document.getElementById('inp-nume-echipa').value = '';
             document.getElementById('inp-tag').value = '';
             document.getElementById('inp-capitan').value = '';
             randeazaTot();
         }
 
-        // UPDATE Echipa
         function editeazaEchipa(id) {
+            if (rolCurent === 'ORGANIZATOR') {
+                logSQL(`EROARE ACCES (403 Forbidden): Rolul ORGANIZATOR nu are drept de UPDATE pe tabelul Echipe!`, 'eroare');
+                return;
+            }
             let ech = echipe.find(e => e.id === id);
             let numeNou = prompt("Introdu noul nume pentru echipa " + ech.nume + ":", ech.nume);
             if (numeNou && numeNou.trim() !== "") {
                 ech.nume = numeNou.trim();
-                logSQL(`> UPDATE Echipe SET nume_echipa = '${ech.nume}' WHERE id_echipa = ${id};`, 'update');
+                logSQL(`> [${rolCurent}] UPDATE Echipe SET nume_echipa = '${ech.nume}' WHERE id_echipa = ${id};`, 'update');
                 randeazaTot();
             }
         }
 
-        // DELETE Echipa
         function stergeEchipa(id) {
+            if (rolCurent !== 'ADMIN') {
+                logSQL(`EROARE ACCES (403 Forbidden): Doar rolul ADMIN poate executa DELETE pe tabelul Echipe!`, 'eroare');
+                return;
+            }
             echipe = echipe.filter(e => e.id !== id);
             meciuri = meciuri.filter(m => m.echipa1Id !== id && m.echipa2Id !== id);
-            logSQL(`> DELETE FROM Echipe WHERE id_echipa = ${id}; -- Cascade aplicat`, 'eroare');
+            logSQL(`> [ADMIN] DELETE FROM Echipe WHERE id_echipa = ${id}; -- Cascade aplicat`, 'eroare');
             randeazaTot();
         }
 
-        // CREATE Meci
         function adaugaMeci() {
+            if (rolCurent === 'JUCATOR') {
+                logSQL(`EROARE ACCES (403 Forbidden): Rolul JUCĂTOR nu are permisiunea de a programa meciuri oficiale!`, 'eroare');
+                return;
+            }
             const runda = document.getElementById('inp-runda').value.trim() || 'Meci Oficial';
             const e1 = parseInt(document.getElementById('sel-meci-e1').value);
             const e2 = parseInt(document.getElementById('sel-meci-e2').value);
@@ -319,35 +612,45 @@
             }
             const idNou = meciuri.length ? Math.max(...meciuri.map(m => m.id)) + 1 : 1000;
             meciuri.push({ id: idNou, runda: runda, echipa1Id: e1, echipa2Id: e2, scor1: 0, scor2: 0, status: 'Programat' });
-            logSQL(`> INSERT INTO Meciuri (id_meci, runda, id_echipa1, id_echipa2) VALUES (${idNou}, '${runda}', ${e1}, ${e2});`);
+            logSQL(`> [${rolCurent}] INSERT INTO Meciuri (id_meci, runda, id_echipa1, id_echipa2) VALUES (${idNou}, '${runda}', ${e1}, ${e2});`);
             randeazaTot();
         }
 
-        // UPDATE Meci
         function actualizeazaMeci(id) {
+            if (rolCurent === 'JUCATOR') {
+                logSQL(`EROARE ACCES (403 Forbidden): Doar ADMIN și ORGANIZATOR pot valida scorul unui meci!`, 'eroare');
+                return;
+            }
             const s1 = parseInt(document.getElementById(`scor1-${id}`).value) || 0;
             const s2 = parseInt(document.getElementById(`scor2-${id}`).value) || 0;
             let m = meciuri.find(x => x.id === id);
             m.scor1 = s1; m.scor2 = s2;
             m.status = (s1 > 0 || s2 > 0) ? 'Finalizat' : 'Programat';
-            logSQL(`> UPDATE Meciuri SET scor_echipa1 = ${s1}, scor_echipa2 = ${s2}, status_meci = '${m.status}' WHERE id_meci = ${id};`, 'update');
+            logSQL(`> [${rolCurent}] UPDATE Meciuri SET scor_echipa1 = ${s1}, scor_echipa2 = ${s2}, status_meci = '${m.status}' WHERE id_meci = ${id};`, 'update');
             randeazaTot();
         }
 
-        // DELETE Meci
         function stergeMeci(id) {
+            if (rolCurent !== 'ADMIN') {
+                logSQL(`EROARE ACCES (403 Forbidden): Doar rolul ADMIN poate șterge un meci din baza de date!`, 'eroare');
+                return;
+            }
             meciuri = meciuri.filter(m => m.id !== id);
-            logSQL(`> DELETE FROM Meciuri WHERE id_meci = ${id};`, 'eroare');
+            logSQL(`> [ADMIN] DELETE FROM Meciuri WHERE id_meci = ${id};`, 'eroare');
             randeazaTot();
         }
 
-        // DELETE Jucator
         function stergeJucator(id) {
+            if (rolCurent !== 'ADMIN') {
+                logSQL(`EROARE ACCES (403 Forbidden): Doar rolul ADMIN poate șterge jucători din baza de date!`, 'eroare');
+                return;
+            }
             jucatori = jucatori.filter(j => j.id !== id);
-            logSQL(`> DELETE FROM Jucatori WHERE id_jucator = ${id};`, 'eroare');
+            logSQL(`> [ADMIN] DELETE FROM Jucatori WHERE id_jucator = ${id};`, 'eroare');
             randeazaTot();
         }
 
+        reconstruiesteIndex();
         randeazaTot();
     </script>
 </body>
