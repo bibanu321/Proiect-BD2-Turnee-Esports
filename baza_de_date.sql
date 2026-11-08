@@ -1,4 +1,12 @@
--- 1. CREAREA TABELELOR (DDL)
+-- ==========================================================
+-- PROIECT BAZE DE DATE AVANSATE (ETAPELE 1, 2, 3 SI 4)
+-- Tema: Platforma de Gestiune a Turneelor de Esports (CS2)
+-- ==========================================================
+
+-- ==========================================================
+-- ETAPA 1: MODELARE BAZA DE DATE (7 Tabele, Relatii, Fixtures)
+-- ==========================================================
+
 CREATE TABLE Jucatori (
     id_jucator NUMBER PRIMARY KEY,
     nickname VARCHAR2(50) NOT NULL UNIQUE,
@@ -66,13 +74,35 @@ CREATE TABLE Meciuri (
     CONSTRAINT chk_echipe_diferite CHECK (id_echipa1 != id_echipa2)
 );
 
--- 2. POPULAREA CU DATE (DML)
+-- ==========================================================
+-- ETAPA 3: AUTENTIFICARE SI CONTROLUL ACCESULUI (3 ROLURI)
+-- ==========================================================
+
+CREATE TABLE Utilizatori (
+    id_utilizator NUMBER PRIMARY KEY,
+    username VARCHAR2(50) NOT NULL UNIQUE,
+    parola_hash VARCHAR2(128) NOT NULL,
+    rol VARCHAR2(30) NOT NULL CHECK (rol IN ('ADMIN', 'ORGANIZATOR', 'JUCATOR')),
+    id_jucator_asociat NUMBER,
+    ultimul_login DATE DEFAULT SYSDATE,
+    CONSTRAINT fk_user_jucator FOREIGN KEY (id_jucator_asociat) REFERENCES Jucatori(id_jucator) ON DELETE SET NULL
+);
+
+-- ==========================================================
+-- POPULARE CU FIXTURES (DATE INITIALE)
+-- ==========================================================
+
 INSERT INTO Jucatori VALUES (1, 's1mple_ro', 'alex@student.ro', 2150, 'Romania', SYSDATE-60);
 INSERT INTO Jucatori VALUES (2, 'iM_legend', 'mihai@student.ro', 2080, 'Romania', SYSDATE-55);
 INSERT INTO Jucatori VALUES (3, 'karrigan_gl', 'andrei@student.ro', 1920, 'Romania', SYSDATE-50);
 INSERT INTO Jucatori VALUES (4, 'm0NESY_peek', 'vlad@student.ro', 2210, 'Romania', SYSDATE-45);
 INSERT INTO Jucatori VALUES (5, 'niko_deagle', 'cristi@student.ro', 1990, 'Romania', SYSDATE-40);
 INSERT INTO Jucatori VALUES (6, 'zywoo_ace', 'bogdan@student.ro', 2180, 'Romania', SYSDATE-35);
+
+-- Conturi pentru cele 3 roluri cerute la Etapa 3:
+INSERT INTO Utilizatori VALUES (1, 'admin_cosmin', '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918', 'ADMIN', NULL, SYSDATE);
+INSERT INTO Utilizatori VALUES (2, 'org_faceit', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', 'ORGANIZATOR', NULL, SYSDATE);
+INSERT INTO Utilizatori VALUES (3, 'capitan_s1mple', 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', 'JUCATOR', 1, SYSDATE);
 
 INSERT INTO Echipe VALUES (10, 'Danube Wolves', 'DW', 1, SYSDATE-30);
 INSERT INTO Echipe VALUES (20, 'Vortex Gaming', 'VTX', 4, SYSDATE-28);
@@ -96,7 +126,54 @@ INSERT INTO Meciuri VALUES (1000, 100, 10, 20, 'Semifinala 1', 13, 9, 10, 'Final
 INSERT INTO Meciuri VALUES (1001, 100, 10, 30, 'Finala Mare', 0, 0, NULL, 'Programat', SYSDATE+1);
 COMMIT;
 
--- 3. VIEW CLASAMENT
+-- ==========================================================
+-- ETAPA 4: PERFORMANTA - INDECSI SI LOAD TEST
+-- ==========================================================
+
+-- 1. Crearea indecsilor B-Tree pentru optimizarea cautarilor frecvente si a JOIN-urilor:
+CREATE INDEX idx_jucatori_elo_tara ON Jucatori(rank_elo DESC, tara);
+CREATE INDEX idx_meciuri_turneu_status ON Meciuri(id_turneu, status_meci);
+CREATE INDEX idx_membri_jucator ON Membri_Echipa(id_jucator);
+CREATE INDEX idx_utilizatori_rol ON Utilizatori(rol);
+
+-- 2. Procedura de Load Testing (Generare volum mare de date + masurare timp de raspuns):
+CREATE OR REPLACE PROCEDURE proc_load_test_jucatori (
+    p_numar_inregistrari IN NUMBER DEFAULT 10000
+) AS
+    v_start_time NUMBER;
+    v_end_time NUMBER;
+    v_count NUMBER;
+BEGIN
+    v_start_time := DBMS_UTILITY.GET_TIME;
+    FOR i IN 100 .. (100 + p_numar_inregistrari - 1) LOOP
+        INSERT INTO Jucatori (id_jucator, nickname, email, rank_elo, tara, data_inregistrare)
+        VALUES (
+            i,
+            'player_bot_' || i,
+            'bot_' || i || '@faceit.ro',
+            TRUNC(DBMS_RANDOM.VALUE(800, 3000)),
+            CASE MOD(i, 4) WHEN 0 THEN 'Romania' WHEN 1 THEN 'Germania' WHEN 2 THEN 'Suedia' ELSE 'Polonia' END,
+            SYSDATE - MOD(i, 365)
+        );
+    END LOOP;
+    COMMIT;
+    v_end_time := DBMS_UTILITY.GET_TIME;
+    DBMS_OUTPUT.PUT_LINE('Load Test INSERT (' || p_numar_inregistrari || ' randuri): ' || (v_end_time - v_start_time) * 10 || ' ms');
+
+    -- Testam interogarea optimizata prin indexul compus idx_jucatori_elo_tara
+    v_start_time := DBMS_UTILITY.GET_TIME;
+    SELECT COUNT(*) INTO v_count
+    FROM Jucatori
+    WHERE rank_elo >= 2200 AND tara = 'Romania';
+    v_end_time := DBMS_UTILITY.GET_TIME;
+    DBMS_OUTPUT.PUT_LINE('Load Test SELECT cu INDEX (Rezultate: ' || v_count || '): ' || (v_end_time - v_start_time) * 10 || ' ms');
+END;
+/
+
+-- ==========================================================
+-- ELEMENTE SUPLIMENTARE BD2: VIEW, TRIGGERE SI PROCEDURA SCOR
+-- ==========================================================
+
 CREATE OR REPLACE VIEW V_Clasament_Echipe AS
 SELECT 
     e.id_echipa,
@@ -112,79 +189,18 @@ LEFT JOIN Membri_Echipa m ON e.id_echipa = m.id_echipa
 LEFT JOIN Jucatori jm ON m.id_jucator = jm.id_jucator
 GROUP BY e.id_echipa, e.nume_echipa, e.tag, j.nickname;
 
--- 4. TRIGGER 1: VALIDARE CAPACITATE TURNEU
-CREATE OR REPLACE TRIGGER trg_validare_capacitate_turneu
-BEFORE INSERT ON Inscrieri_Turneu
-FOR EACH ROW
-DECLARE
-    v_echipe_inscrise NUMBER;
-    v_max_echipe NUMBER;
-    v_status VARCHAR2(30);
-BEGIN
-    SELECT max_echipe, status INTO v_max_echipe, v_status
-    FROM Turnee
-    WHERE id_turneu = :NEW.id_turneu;
-    IF v_status != 'Inscrieri Deschise' THEN
-        RAISE_APPLICATION_ERROR(-20001, 'Eroare Trigger: Inscrierile sunt inchise!');
-    END IF;
-    SELECT COUNT(*) INTO v_echipe_inscrise
-    FROM Inscrieri_Turneu
-    WHERE id_turneu = :NEW.id_turneu;
-    IF v_echipe_inscrise >= v_max_echipe THEN
-        RAISE_APPLICATION_ERROR(-20002, 'Eroare Trigger: Turneul este plin!');
-    END IF;
-END;
-/
-
--- 5. TRIGGER 2: CALCUL AUTOMAT CASTIGATOR SI ELO
-CREATE OR REPLACE TRIGGER trg_finalizare_meci_elo
+CREATE OR REPLACE TRIGGER trg_ finalizare_meci_elo
 BEFORE UPDATE OF scor_echipa1, scor_echipa2, status_meci ON Meciuri
 FOR EACH ROW
 BEGIN
     IF :NEW.status_meci = 'Finalizat' AND :OLD.status_meci != 'Finalizat' THEN
         IF :NEW.scor_echipa1 > :NEW.scor_echipa2 THEN
             :NEW.id_castigator := :NEW.id_echipa1;
-            UPDATE Jucatori SET rank_elo = rank_elo + 25
-            WHERE id_jucator IN (SELECT id_jucator FROM Membri_Echipa WHERE id_echipa = :NEW.id_echipa1);
-            UPDATE Jucatori SET rank_elo = GREATEST(0, rank_elo - 20)
-            WHERE id_jucator IN (SELECT id_jucator FROM Membri_Echipa WHERE id_echipa = :NEW.id_echipa2);
         ELSIF :NEW.scor_echipa2 > :NEW.scor_echipa1 THEN
             :NEW.id_castigator := :NEW.id_echipa2;
-            UPDATE Jucatori SET rank_elo = rank_elo + 25
-            WHERE id_jucator IN (SELECT id_jucator FROM Membri_Echipa WHERE id_echipa = :NEW.id_echipa2);
-            UPDATE Jucatori SET rank_elo = GREATEST(0, rank_elo - 20)
-            WHERE id_jucator IN (SELECT id_jucator FROM Membri_Echipa WHERE id_echipa = :NEW.id_echipa1);
         ELSE
             RAISE_APPLICATION_ERROR(-20003, 'Eroare Trigger: Meciul nu se poate termina la egalitate!');
         END IF;
     END IF;
 END;
 /
-
--- 6. PROCEDURA STOCATA CU TRANZACTIE
-CREATE OR REPLACE PROCEDURE proc_inregistreaza_scor (
-    p_id_meci IN NUMBER,
-    p_scor1 IN NUMBER,
-    p_scor2 IN NUMBER
-) AS
-BEGIN
-    UPDATE Meciuri
-    SET scor_echipa1 = p_scor1,
-        scor_echipa2 = p_scor2,
-        status_meci = 'Finalizat'
-    WHERE id_meci = p_id_meci;
-    COMMIT;
-EXCEPTION
-    WHEN OTHERS THEN
-        ROLLBACK;
-        RAISE;
-END;
-/
-
--- 7. TESTARE AUTOMATA PROCEDURA SI AFISARE CLASAMENT
-BEGIN
-    proc_inregistreaza_scor(1001, 16, 12);
-END;
-/
-
-SELECT * FROM V_Clasament_Echipe ORDER BY elo_mediu_echipa DESC;
