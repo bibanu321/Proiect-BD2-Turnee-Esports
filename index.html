@@ -281,21 +281,77 @@
                 </div>
             </div>
 
-            <!-- PAGINA 5: RAPOARTE PDF / CSV / EXCEL (ETAPA 5) -->
+            <!-- PAGINA 5: RAPOARTE PARAMETRIZATE PDF / CSV / EXCEL (ETAPA 5) -->
             <div id="page-rapoarte" class="page-section hidden space-y-6">
-                <div class="card-dark rounded-xl p-6 border-l-4 border-l-sky-500">
-                    <h2 class="text-xl font-bold text-white">Etapa 5: Export Rapoarte (PDF, CSV &amp; Excel)</h2>
-                    <p class="text-xs text-zinc-400 mt-1">
-                        Generează și descarcă rapoarte oficiale din datele curente ale bazei de date (clasamentul echipelor, rezultatele meciurilor și registrul jucătorilor).
-                    </p>
+                <div class="card-dark rounded-xl p-6 border-l-4 border-l-sky-500 space-y-6">
+                    <div>
+                        <h2 class="text-xl font-bold text-white">Etapa 5: Rapoarte Parametrizate &amp; Export (PDF, Excel, CSV)</h2>
+                        <p class="text-xs text-zinc-400 mt-1">
+                            Rapoartele agregă date din mai multe tabele (<code>JOIN</code>, <code>AVG</code>, <code>COUNT</code>, <code>Win Rate %</code>) și aplică filtrele selectate mai jos înainte de generarea fișierelor.
+                        </p>
+                    </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mt-6">
+                    <!-- Filtre Raport -->
+                    <div class="bg-zinc-900/90 border border-zinc-800 rounded-xl p-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                        <div>
+                            <label class="block text-zinc-400 font-semibold mb-1.5">Filtru Status Meciuri:</label>
+                            <select id="rep-filtru-status" onchange="actualizeazaPrevizualizareRaport()" class="w-full bg-zinc-950 border border-zinc-700 rounded-lg p-2 text-white">
+                                <option value="TOATE">Toate meciurile</option>
+                                <option value="Finalizat">Doar Finalizate</option>
+                                <option value="In Desfasurare">Doar În Desfășurare (LIVE)</option>
+                                <option value="Programat">Doar Programate</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-zinc-400 font-semibold mb-1.5">Filtru Țară Jucători:</label>
+                            <select id="rep-filtru-tara" onchange="actualizeazaPrevizualizareRaport()" class="w-full bg-zinc-950 border border-zinc-700 rounded-lg p-2 text-white">
+                                <option value="TOATE">Toate țările</option>
+                                <option value="Romania">Romania</option>
+                                <option value="Germania">Germania</option>
+                                <option value="Suedia">Suedia</option>
+                                <option value="Polonia">Polonia</option>
+                                <option value="Franta">Franta</option>
+                                <option value="Danemarca">Danemarca</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-zinc-400 font-semibold mb-1.5">Prag ELO Minim Jucători:</label>
+                            <input id="rep-filtru-elo" type="number" value="0" min="0" step="100" oninput="actualizeazaPrevizualizareRaport()" class="w-full bg-zinc-950 border border-zinc-700 rounded-lg p-2 text-white">
+                        </div>
+                    </div>
+
+                    <!-- Carduri KPI Sumare (Agregate SQL) -->
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+                            <div class="text-[11px] uppercase tracking-wider text-zinc-400 font-semibold">Meciuri în Raport</div>
+                            <div id="kpi-meciuri" class="text-2xl font-extrabold text-white mt-1">--</div>
+                            <div id="kpi-meciuri-sub" class="text-[11px] text-zinc-500 mt-0.5">--</div>
+                        </div>
+                        <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+                            <div class="text-[11px] uppercase tracking-wider text-zinc-400 font-semibold">Jucători Filtrați / ELO Mediu</div>
+                            <div id="kpi-jucatori" class="text-2xl font-extrabold text-sky-400 mt-1">--</div>
+                            <div id="kpi-elo-mediu" class="text-[11px] text-zinc-500 mt-0.5">--</div>
+                        </div>
+                        <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+                            <div class="text-[11px] uppercase tracking-wider text-zinc-400 font-semibold">MVP Selecție (Top ELO)</div>
+                            <div id="kpi-mvp" class="text-lg font-extrabold faceit-orange mt-1 truncate">--</div>
+                            <div id="kpi-mvp-elo" class="text-[11px] text-zinc-500 mt-0.5">--</div>
+                        </div>
+                        <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+                            <div class="text-[11px] uppercase tracking-wider text-zinc-400 font-semibold">Echipă Lideră (Win Rate)</div>
+                            <div id="kpi-lider" class="text-lg font-extrabold text-emerald-400 mt-1 truncate">--</div>
+                            <div id="kpi-lider-wr" class="text-[11px] text-zinc-500 mt-0.5">--</div>
+                        </div>
+                    </div>
+
+                    <!-- Butoane Export -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
                         <!-- Card PDF -->
                         <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-5 flex flex-col justify-between">
                             <div>
-                                <div class="text-red-400 font-extrabold text-lg mb-1">📄 Raport Oficial PDF</div>
+                                <div class="text-red-400 font-extrabold text-lg mb-1">📄 Raport Analitic PDF</div>
                                 <p class="text-xs text-zinc-400 mb-4">
-                                    Generează un document <code>.pdf</code> formatat cu antet, data generării, clasamentul complet al echipelor și lista meciurilor (folosind <i>jsPDF AutoTable</i>).
+                                    Document <code>.pdf</code> complet cu filtrele aplicate, statistici KPI, clasament cu <b>Win Rate %</b>, meciuri detaliate și Top 25 jucători (<i>jsPDF + AutoTable</i>).
                                 </p>
                             </div>
                             <button onclick="exportPDF()" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2.5 rounded-lg text-xs transition">
@@ -308,7 +364,7 @@
                             <div>
                                 <div class="text-emerald-400 font-extrabold text-lg mb-1">📊 Registru Excel (.xlsx)</div>
                                 <p class="text-xs text-zinc-400 mb-4">
-                                    Exportă un fișier Microsoft Excel complet cu <b>3 foi de calcul (Sheets)</b> separate: <i>Echipe</i>, <i>Meciuri</i> și <i>Jucatori</i> (folosind <i>SheetJS</i>).
+                                    Fișier Excel structurat pe <b>4 foi (Sheets)</b> cu nume reale (fără ID-uri brute): <i>Sumar_KPI</i>, <i>Clasament_Echipe</i>, <i>Meciuri_Detaliat</i> și <i>Jucatori_Filtrat</i>.
                                 </p>
                             </div>
                             <button onclick="exportExcel()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-lg text-xs transition">
@@ -319,13 +375,18 @@
                         <!-- Card CSV -->
                         <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-5 flex flex-col justify-between">
                             <div>
-                                <div class="text-sky-400 font-extrabold text-lg mb-1">📑 Export Date CSV</div>
-                                <p class="text-xs text-zinc-400 mb-4">
-                                    Exportă clasamentul echipelor și cotele ELO în format tabelar standard <code>.csv</code> (UTF-8 cu BOM pentru compatibilitate Excel / Oracle SQL Loader).
+                                <div class="text-sky-400 font-extrabold text-lg mb-1">📑 Export Tabelar CSV</div>
+                                <p class="text-xs text-zinc-400 mb-3">
+                                    Alege setul de date filtrat pe care vrei să îl exporți în format <code>.csv</code> (UTF-8 cu BOM):
                                 </p>
+                                <select id="rep-csv-tip" class="w-full bg-zinc-950 border border-zinc-700 rounded-lg p-2 text-xs text-white mb-4">
+                                    <option value="echipe">Clasament Echipe (cu Win Rate %)</option>
+                                    <option value="meciuri">Meciuri Detaliate (Filtrate)</option>
+                                    <option value="jucatori">Registru Jucători (Filtrați)</option>
+                                </select>
                             </div>
                             <button onclick="exportCSV()" class="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold py-2.5 rounded-lg text-xs transition">
-                                Descarcă Clasament (.csv)
+                                Descarcă Raport (.csv)
                             </button>
                         </div>
                     </div>
@@ -423,6 +484,7 @@
             randeazaEchipe(echipeCache);
             await randeazaMeciuri();
             await randeazaJucatori();
+            await actualizeazaPrevizualizareRaport();
         }
 
         // --- AUTO-UPDATE SCORURI LIVE (LA FIECARE 3 SECUNDE) ---
@@ -476,7 +538,6 @@
                 `;
             });
 
-            // Populam select-urile de creare meci
             const s1 = document.getElementById('sel-meci-e1');
             const s2 = document.getElementById('sel-meci-e2');
             s1.innerHTML = ''; s2.innerHTML = '';
@@ -649,86 +710,258 @@
             await sincronizeazaTot();
         }
 
-        // --- PAGINA RAPOARTE: EXPORT PDF, EXCEL & CSV (ETAPA 5) ---
+        // ============================================================
+        // PAGINA 5: MOTOR RAPOARTE AGREGATE & EXPORT (PDF / EXCEL / CSV)
+        // ============================================================
         function curataDiacritice(str) {
-            return String(str).normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+            return String(str ?? '')
+                .replace(/[ăâ]/g, 'a').replace(/[ĂÂ]/g, 'A')
+                .replace(/[î]/g, 'i').replace(/[Î]/g, 'I')
+                .replace(/[șş]/g, 's').replace(/[ȘŞ]/g, 'S')
+                .replace(/[țţ]/g, 't').replace(/[ȚŢ]/g, 'T')
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        }
+
+        async function obtineDateRaport() {
+            const statusFiltru = document.getElementById('rep-filtru-status')?.value || 'TOATE';
+            const taraFiltru = document.getElementById('rep-filtru-tara')?.value || 'TOATE';
+            const eloMin = parseInt(document.getElementById('rep-filtru-elo')?.value) || 0;
+
+            const resE = await EsportsAPI.request('GET', '/api/echipe', null, sesiune?.rol);
+            const resM = await EsportsAPI.request('GET', '/api/meciuri', null, sesiune?.rol);
+            const resJ = await EsportsAPI.request('GET', '/api/jucatori', null, sesiune?.rol);
+
+            const mapEchipe = new Map(resE.data.map(e => [e.id, e.nume]));
+
+            // 1. Echipe cu statistici agregate (Meciuri Jucate, Victorii, Win Rate %)
+            const echipeAgregate = resE.data.map(e => {
+                const meciuriJucate = resM.data.filter(m => m.status === 'Finalizat' && (m.echipa1Id === e.id || m.echipa2Id === e.id)).length;
+                const winRate = meciuriJucate > 0 ? Math.round((e.victorii / meciuriJucate) * 100) : 0;
+                return {
+                    ID: e.id,
+                    Nume_Echipa: e.nume,
+                    Tag: e.tag,
+                    Capitan: e.capitan,
+                    Nr_Jucatori: e.nrJucatori,
+                    ELO_Mediu: e.eloMediu,
+                    Meciuri_Jucate: meciuriJucate,
+                    Victorii: e.victorii,
+                    Win_Rate: `${winRate}%`
+                };
+            });
+
+            // 2. Meciuri filtrate cu nume reale de echipe (ca in V_Raport_Meciuri_Detaliat)
+            const meciuriFiltrate = resM.data
+                .filter(m => statusFiltru === 'TOATE' || m.status === statusFiltru)
+                .map(m => ({
+                    ID_Meci: m.id,
+                    Runda: m.runda,
+                    Echipa_1: mapEchipe.get(m.echipa1Id) || `Echipa #${m.echipa1Id}`,
+                    Scor_E1: m.scor1,
+                    Scor_E2: m.scor2,
+                    Echipa_2: mapEchipe.get(m.echipa2Id) || `Echipa #${m.echipa2Id}`,
+                    Castigator: m.castigatorId ? (mapEchipe.get(m.castigatorId) || '-') : 'In desfasurare / N/A',
+                    Status: m.status
+                }));
+
+            // 3. Jucatori filtrati cu nume real de echipa, sortati DESC dupa ELO
+            const jucatoriFiltrati = resJ.data
+                .filter(j => (taraFiltru === 'TOATE' || j.tara === taraFiltru) && j.elo >= eloMin)
+                .sort((a, b) => b.elo - a.elo)
+                .map(j => ({
+                    ID: j.id,
+                    Nickname: j.nickname,
+                    Tara: j.tara,
+                    Echipa: mapEchipe.get(j.echipaId) || 'Fara echipa',
+                    Rol: j.rol,
+                    Rank_ELO: j.elo
+                }));
+
+            // 4. Statistici KPI sumare
+            const eloMediuGlobal = jucatoriFiltrati.length
+                ? Math.round(jucatoriFiltrati.reduce((s, j) => s + j.Rank_ELO, 0) / jucatoriFiltrati.length)
+                : 0;
+            const mvp = jucatoriFiltrati[0] || null;
+            const lider = [...echipeAgregate].sort((a, b) => b.Victorii - a.Victorii || b.ELO_Mediu - a.ELO_Mediu)[0] || null;
+            const meciuriFinalizateCount = meciuriFiltrate.filter(m => m.Status === 'Finalizat').length;
+
+            return {
+                filtre: { statusFiltru, taraFiltru, eloMin },
+                echipeAgregate,
+                meciuriFiltrate,
+                jucatoriFiltrati,
+                kpi: {
+                    totalMeciuri: meciuriFiltrate.length,
+                    meciuriFinalizate: meciuriFinalizateCount,
+                    totalJucatori: jucatoriFiltrati.length,
+                    eloMediuGlobal,
+                    mvp,
+                    lider
+                }
+            };
+        }
+
+        async function actualizeazaPrevizualizareRaport() {
+            if (!sesiune) return;
+            const r = await obtineDateRaport();
+            document.getElementById('kpi-meciuri').innerText = r.kpi.totalMeciuri;
+            document.getElementById('kpi-meciuri-sub').innerText = `${r.kpi.meciuriFinalizate} finalizate din selecție`;
+
+            document.getElementById('kpi-jucatori').innerText = r.kpi.totalJucatori.toLocaleString('ro-RO');
+            document.getElementById('kpi-elo-mediu').innerText = `ELO mediu selecție: ${r.kpi.eloMediuGlobal}`;
+
+            document.getElementById('kpi-mvp').innerText = r.kpi.mvp ? r.kpi.mvp.Nickname : 'Niciun rezultat';
+            document.getElementById('kpi-mvp-elo').innerText = r.kpi.mvp ? `${r.kpi.mvp.Rank_ELO} ELO (${r.kpi.mvp.Echipa})` : '-';
+
+            document.getElementById('kpi-lider').innerText = r.kpi.lider ? r.kpi.lider.Nume_Echipa : '-';
+            document.getElementById('kpi-lider-wr').innerText = r.kpi.lider ? `${r.kpi.lider.Victorii} victorii • Win Rate ${r.kpi.lider.Win_Rate}` : '-';
         }
 
         async function exportPDF() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-            const resE = await EsportsAPI.request('GET', '/api/echipe', null, sesiune.rol);
-            const resM = await EsportsAPI.request('GET', '/api/meciuri', null, sesiune.rol);
+            const r = await obtineDateRaport();
 
+            // Antet
             doc.setFontSize(18);
             doc.setTextColor(255, 85, 0);
-            doc.text('ESPORTS ARENA - Raport Turneu CS2', 14, 18);
+            doc.text('ESPORTS ARENA - Raport Analitic Turneu CS2', 14, 18);
 
-            doc.setFontSize(10);
-            doc.setTextColor(80, 80, 80);
-            doc.text(`Generat la: ${new Date().toLocaleString('ro-RO')} | Utilizator: ${sesiune.username} (${sesiune.rol})`, 14, 25);
+            doc.setFontSize(9);
+            doc.setTextColor(90, 90, 90);
+            doc.text(curataDiacritice(`Generat la: ${new Date().toLocaleString('ro-RO')} | Utilizator: ${sesiune.username} (${sesiune.rol})`), 14, 24);
+            doc.text(curataDiacritice(`Filtre aplicate: Status Meci = ${r.filtre.statusFiltru} | Tara = ${r.filtre.taraFiltru} | ELO minim = ${r.filtre.eloMin}`), 14, 29);
 
-            doc.setFontSize(13);
+            // 1. Sumar KPI
+            doc.setFontSize(12);
             doc.setTextColor(0, 0, 0);
-            doc.text('1. Clasament General Echipe', 14, 35);
-
+            doc.text('1. Indicatori Sumari (KPI)', 14, 38);
             doc.autoTable({
-                startY: 39,
-                head: [['ID', 'Nume Echipa', 'Tag', 'Capitan', 'ELO Mediu', 'Victorii']],
-                body: resE.data.map(e => [e.id, curataDiacritice(e.nume), e.tag, curataDiacritice(e.capitan), e.eloMediu, e.victorii]),
-                headStyles: { fillColor: [255, 85, 0] }
+                startY: 41,
+                head: [['Indicator', 'Valoare']],
+                body: [
+                    ['Meciuri incluse in raport (Finalizate)', `${r.kpi.totalMeciuri} (${r.kpi.meciuriFinalizate} finalizate)`],
+                    ['Jucatori filtrati / ELO Mediu', `${r.kpi.totalJucatori} jucatori | ELO mediu: ${r.kpi.eloMediuGlobal}`],
+                    ['MVP Selectie (Top ELO)', r.kpi.mvp ? curataDiacritice(`${r.kpi.mvp.Nickname} - ${r.kpi.mvp.Rank_ELO} ELO (${r.kpi.mvp.Echipa})`) : 'N/A'],
+                    ['Echipa Lidera', r.kpi.lider ? curataDiacritice(`${r.kpi.lider.Nume_Echipa} (${r.kpi.lider.Victorii} victorii, Win Rate ${r.kpi.lider.Win_Rate})`) : 'N/A']
+                ],
+                headStyles: { fillColor: [30, 30, 30] },
+                styles: { fontSize: 9 }
             });
 
-            const nextY = doc.lastAutoTable.finalY + 12;
-            doc.text('2. Situatie Meciuri Turneu', 14, nextY);
-
+            // 2. Clasament Echipe
+            let y = doc.lastAutoTable.finalY + 10;
+            doc.setFontSize(12);
+            doc.text('2. Clasament Echipe (Agregrat cu Win Rate %)', 14, y);
             doc.autoTable({
-                startY: nextY + 4,
-                head: [['ID', 'Runda', 'Echipa 1', 'Scor', 'Echipa 2', 'Status']],
-                body: resM.data.map(m => {
-                    const e1 = resE.data.find(x => x.id === m.echipa1Id)?.nume || m.echipa1Id;
-                    const e2 = resE.data.find(x => x.id === m.echipa2Id)?.nume || m.echipa2Id;
-                    return [m.id, curataDiacritice(m.runda), curataDiacritice(e1), `${m.scor1} : ${m.scor2}`, curataDiacritice(e2), curataDiacritice(m.status)];
-                }),
-                headStyles: { fillColor: [30, 30, 30] }
+                startY: y + 3,
+                head: [['Echipa', 'Tag', 'Capitan', 'ELO Mediu', 'Jucate', 'Victorii', 'Win Rate']],
+                body: r.echipeAgregate.map(e => [
+                    curataDiacritice(e.Nume_Echipa), e.Tag, curataDiacritice(e.Capitan),
+                    e.ELO_Mediu, e.Meciuri_Jucate, e.Victorii, e.Win_Rate
+                ]),
+                headStyles: { fillColor: [255, 85, 0] },
+                styles: { fontSize: 9 }
+            });
+
+            // 3. Meciuri Filtrate
+            y = doc.lastAutoTable.finalY + 10;
+            if (y > 245) { doc.addPage(); y = 20; }
+            doc.setFontSize(12);
+            doc.text(`3. Situatie Meciuri (${r.meciuriFiltrate.length} rezultate)`, 14, y);
+            doc.autoTable({
+                startY: y + 3,
+                head: [['Runda', 'Echipa 1', 'Scor', 'Echipa 2', 'Castigator', 'Status']],
+                body: r.meciuriFiltrate.map(m => [
+                    curataDiacritice(m.Runda), curataDiacritice(m.Echipa_1),
+                    `${m.Scor_E1} : ${m.Scor_E2}`, curataDiacritice(m.Echipa_2),
+                    curataDiacritice(m.Castigator), curataDiacritice(m.Status)
+                ]),
+                headStyles: { fillColor: [40, 40, 40] },
+                styles: { fontSize: 8.5 }
+            });
+
+            // 4. Top Jucatori Filtrati
+            y = doc.lastAutoTable.finalY + 10;
+            if (y > 240) { doc.addPage(); y = 20; }
+            doc.setFontSize(12);
+            doc.text(`4. Top Jucatori Filtrati (afisati primii ${Math.min(25, r.jucatoriFiltrati.length)} din ${r.jucatoriFiltrati.length})`, 14, y);
+            doc.autoTable({
+                startY: y + 3,
+                head: [['#', 'Nickname', 'Tara', 'Echipa', 'Rol', 'ELO']],
+                body: r.jucatoriFiltrati.slice(0, 25).map((j, idx) => [
+                    idx + 1, curataDiacritice(j.Nickname), curataDiacritice(j.Tara),
+                    curataDiacritice(j.Echipa), curataDiacritice(j.Rol), j.Rank_ELO
+                ]),
+                headStyles: { fillColor: [14, 116, 144] },
+                styles: { fontSize: 8.5 }
             });
 
             doc.save('Raport_Turneu_Esports.pdf');
-            EsportsAPI._emitLog('EXPORT', '/api/rapoarte/pdf', 200, 'Fișier Raport_Turneu_Esports.pdf generat și descărcat.', 'perf');
+            EsportsAPI._emitLog('EXPORT', '/api/rapoarte/pdf', 200, `PDF generat (${r.meciuriFiltrate.length} meciuri, ${r.jucatoriFiltrati.length} jucători).`, 'perf');
         }
 
         async function exportExcel() {
-            const resE = await EsportsAPI.request('GET', '/api/echipe', null, sesiune.rol);
-            const resM = await EsportsAPI.request('GET', '/api/meciuri', null, sesiune.rol);
-            const resJ = await EsportsAPI.request('GET', '/api/jucatori', null, sesiune.rol);
-
+            const r = await obtineDateRaport();
             const wb = XLSX.utils.book_new();
-            const wsEchipe = XLSX.utils.json_to_sheet(resE.data);
-            const wsMeciuri = XLSX.utils.json_to_sheet(resM.data);
-            const wsJucatori = XLSX.utils.json_to_sheet(resJ.data.slice(0, 5000));
 
-            XLSX.utils.book_append_sheet(wb, wsEchipe, 'Clasament_Echipe');
-            XLSX.utils.book_append_sheet(wb, wsMeciuri, 'Meciuri');
-            XLSX.utils.book_append_sheet(wb, wsJucatori, 'Jucatori');
+            const sumarRows = [
+                { Indicator: 'Data Generare', Valoare: new Date().toLocaleString('ro-RO') },
+                { Indicator: 'Utilizator', Valoare: `${sesiune.username} (${sesiune.rol})` },
+                { Indicator: 'Filtru Status Meci', Valoare: r.filtre.statusFiltru },
+                { Indicator: 'Filtru Tara Jucatori', Valoare: r.filtre.taraFiltru },
+                { Indicator: 'Prag ELO Minim', Valoare: r.filtre.eloMin },
+                { Indicator: 'Total Meciuri Filtrate', Valoare: r.kpi.totalMeciuri },
+                { Indicator: 'Meciuri Finalizate', Valoare: r.kpi.meciuriFinalizate },
+                { Indicator: 'Total Jucatori Filtrati', Valoare: r.kpi.totalJucatori },
+                { Indicator: 'ELO Mediu Selectie', Valoare: r.kpi.eloMediuGlobal },
+                { Indicator: 'MVP Selectie', Valoare: r.kpi.mvp ? `${r.kpi.mvp.Nickname} (${r.kpi.mvp.Rank_ELO} ELO)` : 'N/A' },
+                { Indicator: 'Echipa Lidera', Valoare: r.kpi.lider ? `${r.kpi.lider.Nume_Echipa} (${r.kpi.lider.Win_Rate})` : 'N/A' }
+            ];
+
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(sumarRows), 'Sumar_KPI');
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(r.echipeAgregate), 'Clasament_Echipe');
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(r.meciuriFiltrate), 'Meciuri_Detaliat');
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(r.jucatoriFiltrati.slice(0, 5000)), 'Jucatori_Filtrat');
 
             XLSX.writeFile(wb, 'Raport_Turneu_Esports.xlsx');
-            EsportsAPI._emitLog('EXPORT', '/api/rapoarte/excel', 200, 'Fișier Raport_Turneu_Esports.xlsx (3 sheets) descărcat.', 'perf');
+            EsportsAPI._emitLog('EXPORT', '/api/rapoarte/excel', 200, 'Excel (.xlsx) generat cu 4 foi agregate (fără ID-uri brute).', 'perf');
         }
 
         async function exportCSV() {
-            const resE = await EsportsAPI.request('GET', '/api/echipe', null, sesiune.rol);
-            const headers = ['ID', 'Nume_Echipa', 'Tag', 'Capitan', 'ELO_Mediu', 'Victorii'];
-            const rows = resE.data.map(e => [e.id, `"${e.nume}"`, e.tag, `"${e.capitan}"`, e.eloMediu, e.victorii].join(','));
+            const r = await obtineDateRaport();
+            const tip = document.getElementById('rep-csv-tip').value;
+            let lista = [];
+            let numeFisier = 'Raport_Esports.csv';
+
+            if (tip === 'echipe') {
+                lista = r.echipeAgregate;
+                numeFisier = 'Raport_Clasament_Echipe.csv';
+            } else if (tip === 'meciuri') {
+                lista = r.meciuriFiltrate;
+                numeFisier = 'Raport_Meciuri_Filtrate.csv';
+            } else {
+                lista = r.jucatoriFiltrati;
+                numeFisier = 'Raport_Jucatori_Filtrati.csv';
+            }
+
+            if (!lista.length) {
+                alert('Nu există înregistrări pentru filtrele selectate!');
+                return;
+            }
+
+            const headers = Object.keys(lista[0]);
+            const rows = lista.map(obj => headers.map(h => `"${String(obj[h] ?? '').replace(/"/g, '""')}"`).join(','));
             const csvContent = '\uFEFF' + [headers.join(','), ...rows].join('\n');
 
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'Clasament_Echipe_Esports.csv';
+            a.download = numeFisier;
             a.click();
             URL.revokeObjectURL(url);
-            EsportsAPI._emitLog('EXPORT', '/api/rapoarte/csv', 200, 'Fișier Clasament_Echipe_Esports.csv descărcat.', 'perf');
+            EsportsAPI._emitLog('EXPORT', `/api/rapoarte/csv?tip=${tip}`, 200, `Fișier ${numeFisier} (${lista.length} rânduri) descărcat.`, 'perf');
         }
     </script>
 </body>
