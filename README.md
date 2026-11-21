@@ -48,3 +48,17 @@ Pentru optimizarea timpilor de răspuns pe volume mari de date, au fost proiecta
 * **Timp de execuție FĂRĂ Index (`FULL TABLE SCAN`):** ~14.5 ms – 22.0 ms (parcurgere secvențială $O(N)$ a celor 10.000 de rânduri).
 * **Timp de execuție CU Index (`INDEX RANGE SCAN` pe `idx_jucatori_elo_tara`):** ~0.5 ms – 1.2 ms (căutare în arbore B-Tree $O(\log N)$).
 * **Factor de accelerare:** Îmbunătățire a timpului de răspuns de aproximativ **15x – 25x**.
+---
+
+## Arhitectură REST API, Navigare Multi-Pagină & Auto-Update Scoruri
+* **Prima pagină dedicată autentificării:** Accesul în aplicație este blocat până la validarea credențialelor prin endpoint-ul `POST /api/auth/login` din fișierul dedicat **`api.js`**.
+* **Navigare pe pagini separate:** După autentificare, aplicația separă fluxurile în 5 secțiuni distincte (Meciuri & Live, Echipe, Jucători, Performanță, Rapoarte), toate comunicând prin stratul REST API (`GET`, `POST`, `PUT`, `PATCH`, `DELETE`) cu verificare RBAC pe roluri.
+* **Actualizare automată a scorurilor (Live Score):** Endpoint-ul `POST /api/live/tick` (oglindit în SQL prin procedura `proc_actualizare_automata_scor`) actualizează automat la fiecare 3 secunde scorurile meciurilor aflate în desfășurare până la atingerea pragului de 13 runde (CS2 MR12), moment în care declanșează automat finalizarea meciului și recalcularea ELO-ului (+25 / -20).
+
+---
+
+## Etapa 5: Rapoarte (Export PDF, CSV și Excel)
+Secțiunea **Rapoarte** permite exportul datelor curente în cele trei formate standard:
+1. **Export PDF (`Raport_Turneu_Esports.pdf`)**: Generat dinamic cu *jsPDF* și *AutoTable*, conținând antetul raportului, utilizatorul curent, clasamentul echipelor și situația meciurilor.
+2. **Export Excel (`Raport_Turneu_Esports.xlsx`)**: Generat cu *SheetJS*, structurat pe **3 foi de calcul (Sheets)** separate (`Clasament_Echipe`, `Meciuri`, `Jucatori`).
+3. **Export CSV (`Clasament_Echipe_Esports.csv`)**: Format tabelar UTF-8 cu BOM pentru import direct în Microsoft Excel sau Oracle SQL*Loader.
